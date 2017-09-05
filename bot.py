@@ -79,7 +79,7 @@ def start(bot, update):
 	Для ознакомления со списком возможных команд, запросите /help")
 
 def help(bot, update):
-	bot.sendMessage(chat_id=update.message.chat_id, text = '''Список команд данного бота:\n
+	bot.sendMessage(chat_id=update.message.chat_id, text = '''**Список команд данного бота:**\n
 	/book -- получить последнюю версию ГОСБука в pdf-формате\n
 	/subscribe -- подписаться на рассылку об обновлениях ГОСБука, чтобы автоматически получать новые версии ГОСБука, а также читать новости, касающиеся ГОСа\n
 	/unsubscribe -- отписаться от выше указанной новостной рассылки\n
@@ -90,8 +90,11 @@ def getbook(bot, update):
 	id = update.message.chat_id
 	if id not in get_starters():
 		add_starter(id)
-        send_file(bot, "/home/ec2-user/GOS_book/GOSBook Matan.pdf", id, None,
+        send_file(bot, "/home/ec2-user/GOS_book/GOSBook_Matan.pdf", id, None,
                       caption="Вот последняя версия ГОСбука")
+
+
+### SUBSRIBE RELATED FUNCTIONS
 
 def get_subscribers():
     with open('subscribers.txt', 'r') as db:
@@ -130,12 +133,45 @@ def unsubscribe(bot, update):
     del_subscriber(id)
     bot.sendMessage(chat_id=id, text = "Вы прекратили свою подписку на рассылку об обновлениях ГОСбука!")
 
-def stop(bot, update):
-	id = update.message.chat_id
-	if id in get_subscribers():
-		del_subscriber(id)
-        bot.sendMessage(chat_id=update.message.chat_id, text = '''До свидания, надеюсь, этот бот Вам хорошо прослужил :)\n
-        С уважением, @didenko_andre''')
+### TEST SUBSS RELATED FUNCTIONS
+
+def get_testsubs():
+    with open('testsubs.txt', 'r') as db:
+        ids = db.read().splitlines()
+    res = []
+    for id in ids:
+        res.append(int(id))
+    return res
+
+def add_testsub(chat_id):
+    with open('testsubs.txt', 'a') as db:
+        db.write(str(chat_id) + '\n')
+    return None
+
+def del_testsub(chat_id):
+    with open('testsubs.txt', 'r') as db:
+        testsubs = db.read().splitlines()
+        testsubs.remove(str(chat_id))
+    with open('testsubs.txt', 'w') as db:
+        db.write('\n'.join(testsubs)+'\n')
+    return None
+
+def testsubscribe(bot, update):
+    id = update.message.chat_id
+    if id in get_testsubs():
+        bot.sendMessage(chat_id=id, text = "Вы уже являетесь БЕТА-тестером!")
+        return None
+    add_testsub(id)
+    bot.sendMessage(chat_id=id, text = "Вы успешно подписались на ТЕСТОВУЮ рассылку!")
+
+def testunsubscribe(bot, update):
+    id = update.message.chat_id
+    if id not in get_testsubs():
+        bot.sendMessage(chat_id=id, text = "Вы не являетесь БЕТА-тестером!")
+        return None
+    del_testsub(id)
+    bot.sendMessage(chat_id=id, text = "Вы прекратили свою подписку на ТЕСТОВУЮ рассылку!")
+
 
 @restricted
 def get_numberofsubs(bot, update):
@@ -155,13 +191,85 @@ def get_users(bot, update):
 	message = '\n'.join(sub_list)
 	bot.sendMessage(chat_id = id, text = 'Список подписчиков:\n'+message)
 
+
+@restricted
+def get_numberoftestsubs(bot, update):
+	id = update.message.chat_id
+	bot.sendMessage(chat_id = id, text = "Количество БЕТА-тестеров у этого бота: " + str(len(get_testsubs())))
+
+@restricted
+def get_testusers(bot, update):
+	id = update.message.chat_id
+	sub_list = []
+	for sub in get_testsubs():
+		chat = bot.getChat(sub)
+		if chat.type == 'private':
+			sub_list.append(chat.first_name + ' ' + chat.last_name)
+		else:
+			sub_list.append("Группа: " + chat.title)
+	message = '\n'.join(sub_list)
+	bot.sendMessage(chat_id = id, text = 'Список БЕТА-тестеров:\n'+message)
+
+def get_suspects():
+    with open('suspects.txt', 'r') as db:
+        ids = db.read().splitlines()
+    res = []
+    for id in ids:
+        res.append(int(id))
+    return res
+
+def check_suspect(suspect_id):
+    with open('suspects.txt', 'r') as db:
+        suspects = db.read().splitlines()
+        suspects.append(str(suspect_id))
+        if ((sum(1 for i in get_suspects() if i == suspect_id)) > 5):
+                suspects = [id for id in suspects if id != str(suspect_id)]
+                del_subscriber(suspect_id)
+    with open('suspects.txt', 'w') as db:
+        db.write('\n'.join(suspects[-100:])+'\n')
+    return None
+
+@restricted
+def get_suspectusers(bot, update):
+	id = update.message.chat_id
+	sub_list = []
+	for sub in get_suspects():
+		chat = bot.getChat(sub)
+		badtimes = sum(1 for i in get_suspects() if i == sub)
+		if chat.type == 'private':
+			sub_list.append(chat.first_name + ' ' + chat.last_name + ' ' + str(badtimes))
+		else:
+			sub_list.append("Группа: " + chat.title + ' ' + str(badtimes))
+	sub_list = list(set(sub_list))
+	message = '\n'.join(sub_list)
+	bot.sendMessage(chat_id = id, text = 'Список подозреваемых:\n'+message)
+
+@restricted
+def saytopeople(bot, update):
+	message = update.message.text
+	message = message.split("\n",2)[2];
+	for id in get_subscribers():
+		try:    
+    			bot.sendMessage(chat_id=id, text = message)
+		except TelegramError as err:
+			check_suspect(id)
+		time.sleep(1)
+
 @restricted
 def secretinfo(bot, update):
-	bot.sendMessage(chat_id=update.message.chat_id, text = '''Список секретных команд данного бота:\n
-	/howmuch -- узнать количество подписчиков данного бота\n
-	/show_subs -- показать список подписчиков\n
-	/howmanystar -- узнать количество стартеров\n
-	/show_starters -- вывести список стартеров\n''')
+	bot.sendMessage(chat_id=update.message.chat_id, text = '''**Список секретных команд данного бота:**\n
+/howmuch -- узнать количество подписчиков данного бота\n
+/show_subs -- показать список подписчиков\n
+/howmanystar -- узнать количество стартеров\n
+/show_starters -- вывести список стартеров\n
+/show_suspects -- вывести список подозреваемых\n
+\n
+/testsubscribe -- стать БЕТА-тестером\n
+/testunsubscribe -- перестать быть БЕТА-тестером\n
+/howmanytest -- узнать количество БЕТА-тестеров\n
+/show_testsubs -- показать БЕТА-тестеров\n
+\n
+/saytopeople <<да>> -- начни любым словом и начни сообщение с двух новых строк и оно будет бродкастено по подписчикам''')
 
 if __name__ == '__main__':
 	with open('GOSBook_Bot_token', 'r') as file1:
@@ -183,20 +291,32 @@ if __name__ == '__main__':
 	dispatcher.add_handler(subscribe_handler)
 	unsubscribe_handler = CommandHandler('unsubscribe',unsubscribe)
 	dispatcher.add_handler(unsubscribe_handler)
-	stop_handler = CommandHandler('stop', stop)
-	dispatcher.add_handler(stop_handler)
+
+	testsubscribe_handler = CommandHandler('testsubscribe',testsubscribe)
+	dispatcher.add_handler(testsubscribe_handler)
+	testunsubscribe_handler = CommandHandler('testunsubscribe',testunsubscribe)
+	dispatcher.add_handler(testunsubscribe_handler)	
 
 	# restricted commands
 	howmuch_handler = CommandHandler('howmuch', get_numberofsubs)
 	dispatcher.add_handler(howmuch_handler)
 	users_handler = CommandHandler('show_subs', get_users)
 	dispatcher.add_handler(users_handler)
+	suspectusers_handler = CommandHandler('show_suspects', get_suspectusers)
+	dispatcher.add_handler(suspectusers_handler)
 	howmanystar_handler = CommandHandler('howmanystar', get_numberofstarters)
 	dispatcher.add_handler(howmanystar_handler)
 	starters_handler = CommandHandler('show_starters', get_users_starters)
 	dispatcher.add_handler(starters_handler)
+	howmanytest_handler = CommandHandler('howmanytest', get_numberoftestsubs)
+	dispatcher.add_handler(howmanytest_handler)
+	testusers_handler = CommandHandler('show_testsubs', get_testusers)
+	dispatcher.add_handler(testusers_handler)
 	secretinfo_handler = CommandHandler('secretinfo', secretinfo)
 	dispatcher.add_handler(secretinfo_handler)
+        saytopeople_handler = CommandHandler('saytopeople', saytopeople)
+        dispatcher.add_handler(saytopeople_handler)
+
 
 	updater.start_polling()
 	updater.idle()
