@@ -1,0 +1,6 @@
+[submodule "telegram"]
+	path = telegram
+	url = git@github.com:python-telegram-bot/python-telegram-bot.git
+[submodule "tarantool-python"]
+	path = tarantool-python
+	url = git@github.com:tarantool/tarantool-python.git
