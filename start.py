@@ -4,6 +4,6 @@
 import bot
 
 with open('GOSBook_Bot_token', 'r') as file1:
-	TOKEN = file1.read().strip()
+    TOKEN = file1.read().strip()
 
 bot.start(TOKEN)

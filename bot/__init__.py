@@ -7,13 +7,14 @@ from telegram.error import TelegramError
 
 from .commands import COMMANDS, init_dispatcher
 
+
 def start(token):
-	updater = Updater(token = token)
-	dispatcher = updater.dispatcher
+    updater = Updater(token=token)
+    dispatcher = updater.dispatcher
 
-	init_dispatcher(dispatcher)
+    init_dispatcher(dispatcher)
 
-	COMMANDS.pprint()
+    COMMANDS.pprint()
 
-	updater.start_polling()
-	updater.idle()
+    updater.start_polling()
+    updater.idle()

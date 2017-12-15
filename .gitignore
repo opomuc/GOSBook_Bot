@@ -26,9 +26,13 @@
 **/*.gz
 **/*.pdf
 
+# private files
 **/*.pem
 GOSBook_Bot_token
 didenko_andre_id
 mode_list
 admin_ids
 **/*.txt
+
+# Python
+**/*.pyc
