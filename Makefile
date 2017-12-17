@@ -6,6 +6,5 @@ all:
 init:
 	git submodule update --init --recursive
 
-setup: init
+install:
 	cd telegram && python setup.py install
-	cd tarantool-python && python setup.py install
