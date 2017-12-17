@@ -2,9 +2,9 @@ language: python
 python:
   - 3.6
 install:
-  - pip install codecov
-script:
+  - pip install codecov pylint
   - make install
-  - ./setup.py test
+script:
+  - make test
 after_success:
   - codecov
