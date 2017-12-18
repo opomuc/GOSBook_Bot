@@ -260,7 +260,6 @@ def subscribe(bot, update):
     chat_id = update.message.chat_id
     if chat_id in users.get_subscribers():
         bot.sendMessage(chat_id=chat_id, text="Вы уже являетесь подписчиком!")
-        return None
     users.add_subscriber(chat_id)
     bot.sendMessage(
         chat_id=chat_id, text="Вы успешно подписались на рассылку об обновлениях ГОСбука!")
