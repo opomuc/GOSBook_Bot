@@ -12,6 +12,13 @@ If you want to run a copy of our Bot, please do include a disclaimer.
 make install
 ```
 
+## Running
+
+If you wish to run this beautiful Bot:
+```
+python start.py
+```
+
 ## Test
 
 Currently we support only `pylint` checker for the code base.
@@ -20,7 +27,10 @@ If you want to write tests for the bot, please refer to [this wiki](https://gith
 
 ## Deployment
 
-Docker support is WIP. Stay tuned...
+Here you can find necessary information about the deployment of this Bot:
+
+https://github.com/python-telegram-bot/python-telegram-bot/wiki/Where-to-host-Telegram-Bots
+
 
 ## Data persistency
 
