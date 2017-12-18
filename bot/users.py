@@ -26,8 +26,8 @@ def add_admins():
 
 
 def get_subscribers():
-    with open('subscribers.txt', 'r') as db:
-        ids = db.read().splitlines()
+    with open('subscribers.txt', 'r') as db_sub:
+        ids = db_sub.read().splitlines()
     res = []
     for sub_id in ids:
         res.append(int(sub_id))
@@ -52,8 +52,8 @@ def del_subscriber(chat_id):
 
 
 def get_testsubs():
-    with open('testsubs.txt', 'r') as db:
-        ids = db.read().splitlines()
+    with open('testsubs.txt', 'r') as db_sub:
+        ids = db_sub.read().splitlines()
     res = []
     for sub_id in ids:
         res.append(int(sub_id))

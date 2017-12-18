@@ -77,8 +77,8 @@ def saytopeople(bot, update):
         message = message.split("\n", 2)[2]
     except:
         bot.sendMessage(
-            chat_id=id_all, text='Сообщение не отправлено. Неправильный формат сообщения.'
-	return None
+            chat_id=id_all, text='Сообщение не отправлено. Неправильный формат сообщения.')
+        return None
 
     with open('mode_list', 'r') as file:
         mode_list = int(file.read())   # 0 - test; 1 -- true work.
