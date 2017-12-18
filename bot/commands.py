@@ -11,7 +11,7 @@ import time
 
 def send_file(bot, filename, chat_id, _type, caption, **kwargs):
     def upload():
-	v_var = bot.sendDocument(bot, open(filename, 'r'), chat_id, caption)
+        v_var = bot.sendDocument(bot, open(filename, 'r'), chat_id, caption)
         return v_var
     try:
         return upload()
