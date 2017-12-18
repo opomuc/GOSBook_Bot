@@ -225,6 +225,7 @@ def start(bot, update):
         users.add_starter(chat_id)
     bot.sendMessage(chat_id=update.message.chat_id, text="Я бот, вижу, вы хотите поботать ГОС?\n\
 	Для ознакомления со списком возможных команд, запросите /help")
+    return None
 
 
 COMMANDS.add('start', start)
@@ -251,6 +252,7 @@ def getbook(bot, update):
         users.add_starter(chat_id)
     send_file(bot, "/home/ec2-user/GOS_book/GOSBook_Matan.pdf", chat_id, None,
               caption="Вот последняя версия ГОСбука")
+    return None
 
 
 COMMANDS.add('book', getbook)
@@ -263,6 +265,7 @@ def subscribe(bot, update):
     users.add_subscriber(chat_id)
     bot.sendMessage(
         chat_id=chat_id, text="Вы успешно подписались на рассылку об обновлениях ГОСбука!")
+    return None
 
 
 COMMANDS.add('subscribe', subscribe)
@@ -275,6 +278,7 @@ def unsubscribe(bot, update):
     users.del_subscriber(chat_id)
     bot.sendMessage(
         chat_id=chat_id, text="Вы прекратили свою подписку на рассылку об обновлениях ГОСбука!")
+    return None
 
 
 COMMANDS.add('unsubscribe', unsubscribe)
@@ -287,6 +291,7 @@ def testsubscribe(bot, update):
     users.add_testsub(chat_id)
     bot.sendMessage(
         chat_id=chat_id, text="Вы успешно подписались на ТЕСТОВУЮ рассылку!")
+    return None
 
 
 COMMANDS.add('testsubscribe', testsubscribe)
@@ -299,6 +304,7 @@ def testunsubscribe(bot, update):
     users.del_testsub(chat_id)
     bot.sendMessage(
         chat_id=chat_id, text="Вы прекратили свою подписку на ТЕСТОВУЮ рассылку!")
+    return None
 
 
 COMMANDS.add('testunsubscribe', testunsubscribe)
