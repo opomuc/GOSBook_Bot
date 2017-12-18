@@ -6,29 +6,29 @@ from telegram.ext import CommandHandler
 from telegram.error import TelegramError
 
 import users
+import time
 
 
 def send_file(bot, filename, chat_id, _type, caption, **kwargs):
-    def upload(file_id):
-        v = bot.sendDocument(bot, open(filename, 'r'), chat_id, caption)
-        return v
+    def upload():
+	v_var = bot.sendDocument(bot, open(filename, 'r'), chat_id, caption)
+        return v_var
     try:
-        return upload(str(hash(filename)))
-    except TelegramError as e:
-        if "file_id" in e.message:
-            return upload("s")
+        return upload()
+    except TelegramError as e_error:
+        if "file_id" in e_error.message:
+            return upload()
         else:
-            raise e
+            raise e_error
 
 
 def restricted(func):
     @wraps(func)
-    def wrapped(bot, update, *args, **kwargs):
+    def wrapped(bot, update, *args):
         user_id = update.message.chat_id
         if user_id not in users.admins():
-            print("Unauthorized access denied for {}.".format(user_id))
-            return
-        return func(bot, update, *args, **kwargs)
+            return print("Unauthorized access denied for {}.".format(user_id)) 
+        return func(bot, update, *args)
     return wrapped
 
 
@@ -51,7 +51,7 @@ def init_dispatcher(dispatcher):
 
 @restricted
 def get_suspectusers(bot, update):
-    id = update.message.chat_id
+    id_all = update.message.chat_id
     sub_list = []
     for sub in users.get_suspects():
         chat = bot.getChat(sub)
@@ -63,7 +63,7 @@ def get_suspectusers(bot, update):
             sub_list.append("Группа: " + chat.title + ' ' + str(badtimes))
     sub_list = list(set(sub_list))
     message = '\n'.join(sub_list)
-    bot.sendMessage(chat_id=id, text='Список подозреваемых:\n' + message)
+    bot.sendMessage(chat_id=id_all, text='Список подозреваемых:\n' + message)
 
 
 COMMANDS.add('show_suspects', get_suspectusers)
@@ -71,14 +71,14 @@ COMMANDS.add('show_suspects', get_suspectusers)
 
 @restricted
 def saytopeople(bot, update):
-    id = update.message.chat_id
+    id_all = update.message.chat_id
     try:
         message = update.message.text
         message = message.split("\n", 2)[2]
     except:
         bot.sendMessage(
-            chat_id=id, text='Сообщение не отправлено. Неправильный формат сообщения.')
-        return None
+            chat_id=id_all, text='Сообщение не отправлено. Неправильный формат сообщения.'
+	return None
 
     with open('mode_list', 'r') as file:
         mode_list = int(file.read())   # 0 - test; 1 -- true work.
@@ -119,7 +119,8 @@ COMMANDS.add('changemode', changemode)
 
 @restricted
 def secretinfo(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text='''**Список секретных команд данного бота:**\n
+    bot.sendMessage(chat_id=update.message.chat_id, 
+		    text='''**Список секретных команд данного бота:**\n
 /howmuch -- узнать количество подписчиков данного бота
 /show_subs -- показать список подписчиков
 /howmanystar -- узнать количество стартеров
@@ -130,8 +131,10 @@ def secretinfo(bot, update):
 /testunsubscribe -- перестать быть БЕТА-тестером
 /howmanytest -- узнать количество БЕТА-тестеров
 /show_testsubs -- показать БЕТА-тестеров
-/changemode -- смени режим работы бота. Тестовый режим -- для тестовой аудитории, и нормальный режим для вещания на реальную аудиторию
-"/saytopeople \\n\\n + <<сообщение>>" --  начни сообщение после двух переходов на новую строку, и оно будет бродкастено на аудиторию''')
+/changemode -- смени режим работы бота. 
+	Тестовый режим -- для тестовой аудитории, и нормальный режим для вещания на реальную аудиторию
+"/saytopeople \\n\\n + <<сообщение>>" --  начни сообщение после двух переходов 
+			на новую строку, и оно будет бродкастено на аудиторию''')
 
 
 COMMANDS.add('secretinfo', secretinfo)
@@ -229,7 +232,7 @@ def start(bot, update):
 COMMANDS.add('start', start)
 
 
-def help(bot, update):
+def help_bot(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='''**Список команд данного бота:**\n
 	/book -- получить последнюю версию ГОСБука в pdf-формате\n
 	/subscribe -- подписаться на рассылку об обновлениях ГОСБука, чтобы автоматически получать новые версии ГОСБука, а также читать новости, касающиеся ГОСа\n
@@ -238,7 +241,7 @@ def help(bot, update):
 	PS. Если я как-то неправильно работаю или у тебя есть интересные предложения по улучшению меня, то напиши, пожалуйста, моему создателю @didenko_andre''')
 
 
-COMMANDS.add('help', help)
+COMMANDS.add('help', help_bot)
 
 
 def getbook(bot, update):
