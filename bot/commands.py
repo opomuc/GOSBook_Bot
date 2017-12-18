@@ -1,15 +1,15 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+import time
 
 from functools import wraps
 from telegram.ext import CommandHandler
 from telegram.error import TelegramError
 
 import users
-import time
 
 
-def send_file(bot, filename, chat_id, _type, caption, **kwargs):
+def send_file(bot, filename, chat_id, _type, caption):
     def upload():
         v_var = bot.sendDocument(bot, open(filename, 'r'), chat_id, caption)
         return v_var
@@ -26,8 +26,8 @@ def restricted(func):
     @wraps(func)
     def wrapped(bot, update, *args):
         user_id = update.message.chat_id
-        if user_id not in users.admins():
-            return print("Unauthorized access denied for {}.".format(user_id)) 
+        if user_id not in users.get_admins():
+            return print("Unauthorized access denied for {}.".format(user_id))
         return func(bot, update, *args)
     return wrapped
 
@@ -75,10 +75,9 @@ def saytopeople(bot, update):
     try:
         message = update.message.text
         message = message.split("\n", 2)[2]
-    except:
+    except TelegramError:
         bot.sendMessage(
             chat_id=id_all, text='Сообщение не отправлено. Неправильный формат сообщения.')
-        return None
 
     with open('mode_list', 'r') as file:
         mode_list = int(file.read())   # 0 - test; 1 -- true work.
@@ -91,7 +90,7 @@ def saytopeople(bot, update):
     for ids in audience:
         try:
             bot.sendMessage(chat_id=ids, text=message)
-        except TelegramError as err:
+        except TelegramError:
             users.check_suspect(ids)
         time.sleep(1)
 
@@ -101,16 +100,15 @@ COMMANDS.add('saytopeople', saytopeople)
 
 @restricted
 def changemode(bot, update):
-    id = update.message.chat_id
+    chat_id = update.message.chat_id
+    with open('mode_list', 'r') as db_mode:
+        mode = int(db_mode.read())
 
-    with open('mode_list', 'r') as db:
-        mode = int(db.read())
-
-    with open('mode_list', 'w') as db:
+    with open('mode_list', 'w') as db_mode:
         mode = 1 - mode
-        db.write(str(mode))
+        db_mode.write(str(mode))
 
-    bot.sendMessage(chat_id=id, text='теперь включен режим ' +
+    bot.sendMessage(chat_id=chat_id, text='теперь включен режим ' +
                     str(mode) + '.\n 0 -- тест, 1 -- норма.')
 
 
@@ -119,8 +117,8 @@ COMMANDS.add('changemode', changemode)
 
 @restricted
 def secretinfo(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, 
-		    text='''**Список секретных команд данного бота:**\n
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text='''**Список секретных команд данного бота:**\n
 /howmuch -- узнать количество подписчиков данного бота
 /show_subs -- показать список подписчиков
 /howmanystar -- узнать количество стартеров
@@ -142,8 +140,8 @@ COMMANDS.add('secretinfo', secretinfo)
 
 @restricted
 def get_numberoftestsubs(bot, update):
-    id = update.message.chat_id
-    bot.sendMessage(chat_id=id, text="Количество БЕТА-тестеров у этого бота: " +
+    chat_id = update.message.chat_id
+    bot.sendMessage(chat_id=chat_id, text="Количество БЕТА-тестеров у этого бота: " +
                     str(len(users.get_testsubs())))
 
 
@@ -152,7 +150,7 @@ COMMANDS.add('howmanytest', get_numberoftestsubs)
 
 @restricted
 def get_testusers(bot, update):
-    id = update.message.chat_id
+    chat_id = update.message.chat_id
     sub_list = []
     for sub in users.get_testsubs():
         chat = bot.getChat(sub)
@@ -161,7 +159,7 @@ def get_testusers(bot, update):
         else:
             sub_list.append("Группа: " + chat.title)
     message = '\n'.join(sub_list)
-    bot.sendMessage(chat_id=id, text='Список БЕТА-тестеров:\n' + message)
+    bot.sendMessage(chat_id=chat_id, text='Список БЕТА-тестеров:\n' + message)
 
 
 COMMANDS.add('show_testsubs', get_testusers)
@@ -169,8 +167,8 @@ COMMANDS.add('show_testsubs', get_testusers)
 
 @restricted
 def get_numberofsubs(bot, update):
-    id = update.message.chat_id
-    bot.sendMessage(chat_id=id, text="Количество подписчиков у этого бота: " +
+    chat_id = update.message.chat_id
+    bot.sendMessage(chat_id=chat_id, text="Количество подписчиков у этого бота: " +
                     str(len(users.get_subscribers())))
 
 
@@ -179,7 +177,7 @@ COMMANDS.add('howmuch', get_numberofsubs)
 
 @restricted
 def get_users(bot, update):
-    id = update.message.chat_id
+    chat_id = update.message.chat_id
     sub_list = []
     for sub in users.get_subscribers():
         chat = bot.getChat(sub)
@@ -188,7 +186,7 @@ def get_users(bot, update):
         else:
             sub_list.append("Группа: " + chat.title)
     message = '\n'.join(sub_list)
-    bot.sendMessage(chat_id=id, text='Список подписчиков:\n' + message)
+    bot.sendMessage(chat_id=chat_id, text='Список подписчиков:\n' + message)
 
 
 COMMANDS.add('show_subs', get_users)
@@ -196,8 +194,8 @@ COMMANDS.add('show_subs', get_users)
 
 @restricted
 def get_numberofstarters(bot, update):
-    id = update.message.chat_id
-    bot.sendMessage(chat_id=id, text="Количество стартеров у этого бота: " +
+    chat_id = update.message.chat_id
+    bot.sendMessage(chat_id=chat_id, text="Количество стартеров у этого бота: " +
                     str(len(users.get_starters())))
 
 
@@ -206,7 +204,7 @@ COMMANDS.add('howmanystar', get_numberofstarters)
 
 @restricted
 def get_users_starters(bot, update):
-    id = update.message.chat_id
+    chat_id = update.message.chat_id
     sub_list = []
     for sub in users.get_starters():
         chat = bot.getChat(sub)
@@ -215,16 +213,16 @@ def get_users_starters(bot, update):
         else:
             sub_list.append("Группа: " + chat.title)
     message = '\n'.join(sub_list)
-    bot.sendMessage(chat_id=id, text='Список стартеров:\n' + message)
+    bot.sendMessage(chat_id=chat_id, text='Список стартеров:\n' + message)
 
 
 COMMANDS.add('show_starters', get_users_starters)
 
 
 def start(bot, update):
-    id = update.message.chat_id
-    if id not in get_starters():
-        add_starter(id)
+    chat_id = update.message.chat_id
+    if chat_id not in users.get_starters():
+        users.add_starter(chat_id)
     bot.sendMessage(chat_id=update.message.chat_id, text="Я бот, вижу, вы хотите поботать ГОС?\n\
 	Для ознакомления со списком возможных команд, запросите /help")
 
@@ -235,20 +233,23 @@ COMMANDS.add('start', start)
 def help_bot(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='''**Список команд данного бота:**\n
 	/book -- получить последнюю версию ГОСБука в pdf-формате\n
-	/subscribe -- подписаться на рассылку об обновлениях ГОСБука, чтобы автоматически получать новые версии ГОСБука, а также читать новости, касающиеся ГОСа\n
+	/subscribe -- подписаться на рассылку об обновлениях ГОСБука,
+                    чтобы автоматически получать новые версии ГОСБука,
+                    а также читать новости, касающиеся ГОСа\n
 	/unsubscribe -- отписаться от выше указанной новостной рассылки\n
 	/help -- вывести список команд данного бота\n\n
-	PS. Если я как-то неправильно работаю или у тебя есть интересные предложения по улучшению меня, то напиши, пожалуйста, моему создателю @didenko_andre''')
+	PS. Если я как-то неправильно работаю или у тебя есть интересные предложения по улучшению меня:
+	 то напиши, пожалуйста, моему создателю @didenko_andre''')
 
 
 COMMANDS.add('help', help_bot)
 
 
 def getbook(bot, update):
-    id = update.message.chat_id
-    if id not in get_starters():
-        add_starter(id)
-    send_file(bot, "/home/ec2-user/GOS_book/GOSBook_Matan.pdf", id, None,
+    chat_id = update.message.chat_id
+    if chat_id not in users.get_starters():
+        users.add_starter(chat_id)
+    send_file(bot, "/home/ec2-user/GOS_book/GOSBook_Matan.pdf", chat_id, None,
               caption="Вот последняя версия ГОСбука")
 
 
@@ -256,52 +257,49 @@ COMMANDS.add('book', getbook)
 
 
 def subscribe(bot, update):
-    id = update.message.chat_id
-    if id in users.get_subscribers():
-        bot.sendMessage(chat_id=id, text="Вы уже являетесь подписчиком!")
+    chat_id = update.message.chat_id
+    if chat_id in users.get_subscribers():
+        bot.sendMessage(chat_id=chat_id, text="Вы уже являетесь подписчиком!")
         return None
-    users.add_subscriber(id)
+    users.add_subscriber(chat_id)
     bot.sendMessage(
-        chat_id=id, text="Вы успешно подписались на рассылку об обновлениях ГОСбука!")
+        chat_id=chat_id, text="Вы успешно подписались на рассылку об обновлениях ГОСбука!")
 
 
 COMMANDS.add('subscribe', subscribe)
 
 
 def unsubscribe(bot, update):
-    id = update.message.chat_id
-    if id not in users.get_subscribers():
-        bot.sendMessage(chat_id=id, text="Вы не являетесь подписчиком!")
-        return None
-    users.del_subscriber(id)
+    chat_id = update.message.chat_id
+    if chat_id not in users.get_subscribers():
+        bot.sendMessage(chat_id=chat_id, text="Вы не являетесь подписчиком!")
+    users.del_subscriber(chat_id)
     bot.sendMessage(
-        chat_id=id, text="Вы прекратили свою подписку на рассылку об обновлениях ГОСбука!")
+        chat_id=chat_id, text="Вы прекратили свою подписку на рассылку об обновлениях ГОСбука!")
 
 
 COMMANDS.add('unsubscribe', unsubscribe)
 
 
 def testsubscribe(bot, update):
-    id = update.message.chat_id
-    if id in users.get_testsubs():
-        bot.sendMessage(chat_id=id, text="Вы уже являетесь БЕТА-тестером!")
-        return None
-    users.add_testsub(id)
+    chat_id = update.message.chat_id
+    if chat_id in users.get_testsubs():
+        bot.sendMessage(chat_id=chat_id, text="Вы уже являетесь БЕТА-тестером!")
+    users.add_testsub(chat_id)
     bot.sendMessage(
-        chat_id=id, text="Вы успешно подписались на ТЕСТОВУЮ рассылку!")
+        chat_id=chat_id, text="Вы успешно подписались на ТЕСТОВУЮ рассылку!")
 
 
 COMMANDS.add('testsubscribe', testsubscribe)
 
 
 def testunsubscribe(bot, update):
-    id = update.message.chat_id
-    if id not in users.get_testsubs():
-        bot.sendMessage(chat_id=id, text="Вы не являетесь БЕТА-тестером!")
-        return None
-    users.del_testsub(id)
+    chat_id = update.message.chat_id
+    if chat_id not in users.get_testsubs():
+        bot.sendMessage(chat_id=chat_id, text="Вы не являетесь БЕТА-тестером!")
+    users.del_testsub(chat_id)
     bot.sendMessage(
-        chat_id=id, text="Вы прекратили свою подписку на ТЕСТОВУЮ рассылку!")
+        chat_id=chat_id, text="Вы прекратили свою подписку на ТЕСТОВУЮ рассылку!")
 
 
 COMMANDS.add('testunsubscribe', testunsubscribe)

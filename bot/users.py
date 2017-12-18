@@ -17,7 +17,7 @@ def get_starters():
     return res
 
 
-def add_admins():
+def get_admins():
     result = []
     with open('admin_ids', 'r') as admins:
         for chat_id in admins.read().splitlines():
